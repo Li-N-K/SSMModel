@@ -130,14 +130,26 @@ Penman-Monteith) — SSMM takes PET as an input, it does not compute it.
 | `Psi(mm)` | Matric potential at saturation |
 | `b` | Pore size distribution index (Clapp-Hornberger `b`) |
 
-Then run:
+Then run, pointing `--precip`/`--pet`/`--soil` at your own files:
 
 ```bash
 python SSMModel.py \
-  --precip precip.csv \
-  --pet pet.csv \
-  --soil soil.json \
+  --precip path/to/your/precip.csv \
+  --pet path/to/your/pet.csv \
+  --soil path/to/your/soil.json \
   --lower_boundary gravitational \
+  --output model_output.csv
+```
+
+You can try the `--lower_boundary` options against the bundled sample data directly, without
+needing your own files yet:
+
+```bash
+python SSMModel.py \
+  --precip sample_data/precip.csv \
+  --pet sample_data/pet.csv \
+  --soil sample_data/soil.json \
+  --lower_boundary no_flow \
   --output model_output.csv
 ```
 
@@ -152,12 +164,14 @@ discarded from the output automatically.
 
 ```bash
 python SSMModel.py \
-  --precip precip.csv \
-  --pet pet.csv \
-  --soil soil.json \
+  --precip sample_data/precip.csv \
+  --pet sample_data/pet.csv \
+  --soil sample_data/soil.json \
   --spinup_years 2 \
   --output model_output.csv
 ```
+
+(swap in your own `--precip`/`--pet`/`--soil` paths once you're past the sample data.)
 
 ---
 
