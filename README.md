@@ -141,6 +141,24 @@ python SSMModel.py \
   --output model_output.csv
 ```
 
+### Spin-up
+
+The model always starts every layer at field capacity, which is an artificial initial
+condition rather than a state driven by real forcing. Depending on your soil parameters and
+lower boundary condition, it can take a while for that assumption to wash out — especially in
+deeper, slower-draining layers. Use `--spinup_years` to repeat the first N calendar years of
+your forcing once before the real run and let the model equilibrate; that spin-up period is
+discarded from the output automatically.
+
+```bash
+python SSMModel.py \
+  --precip precip.csv \
+  --pet pet.csv \
+  --soil soil.json \
+  --spinup_years 2 \
+  --output model_output.csv
+```
+
 ---
 
 ## Output

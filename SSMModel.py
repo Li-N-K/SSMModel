@@ -22,6 +22,38 @@ def calculate_Z(thickness):
     return [total_column_height - sum(thickness[:i]) for i in range(len(thickness) + 1)]
 
 
+def prepend_spinup(precipitation, pot_evaporation, spinup_years):
+    """
+    Builds a spin-up period by taking the first `spinup_years` calendar years of
+    forcing and repeating that chunk once immediately before the real record, so
+    the model can equilibrate away from its field-capacity initial condition
+    before the period of interest begins.
+
+    Returns the extended (precipitation, pot_evaporation) series and the date at
+    which the real (non-spin-up) record starts, so it can be sliced back out of
+    the output afterwards.
+    """
+    real_start = precipitation.index[0]
+    spin_end = real_start + pd.DateOffset(years=spinup_years) - pd.Timedelta(days=1)
+
+    precip_chunk = precipitation.loc[:spin_end]
+    pet_chunk = pot_evaporation.loc[:spin_end]
+    chunk_len = len(precip_chunk)
+
+    spinup_dates = pd.date_range(end=real_start - pd.Timedelta(days=1), periods=chunk_len, freq='D')
+    precip_chunk = precip_chunk.set_axis(spinup_dates)
+    pet_chunk = pet_chunk.set_axis(spinup_dates)
+
+    extended_precip = pd.concat([precip_chunk, precipitation])
+    extended_pet = pd.concat([pet_chunk, pot_evaporation])
+    extended_precip.name = precipitation.name
+    extended_pet.name = pot_evaporation.name
+    extended_precip.index.name = precipitation.index.name
+    extended_pet.index.name = pot_evaporation.index.name
+
+    return extended_precip, extended_pet, real_start
+
+
 def SSMM_leapfrog(precipitation, pot_evaporation, layer_thickness, soil_props, lower_boundary='gravitational'):
     """
     Simulates multi-layer soil moisture using leapfrog integration.
@@ -143,6 +175,10 @@ def main():
     parser.add_argument('--lower_boundary', type=str, default='gravitational',
                          choices=['gravitational', 'ground_water', 'no_flow'],
                          help='Lower boundary condition to use.')
+    parser.add_argument('--spinup_years', type=int, default=0,
+                         help='Number of years of forcing to repeat before the real run, to let the '
+                              'model equilibrate away from its field-capacity initial condition. '
+                              'The spin-up period is discarded from the output.')
     parser.add_argument('--output', type=str, default='soil_moisture_output.csv', help='Path to save output CSV.')
 
     args = parser.parse_args()
@@ -154,9 +190,17 @@ def main():
     with open(args.soil, 'r') as f:
         soil_props = json.load(f)
 
+    real_start = None
+    if args.spinup_years > 0:
+        precip, pet, real_start = prepend_spinup(precip, pet, args.spinup_years)
+
     # Run model
     print(f'{RED}Running the simulation...{RESET}')
     output = SSMM_leapfrog(precip, pet, layer_thickness, soil_props, args.lower_boundary)
+
+    if real_start is not None:
+        output = output.loc[real_start:]
+
     output['Total_Soil_Moisture'] = (output * layer_thickness).sum(axis=1)
 
     # Save results
