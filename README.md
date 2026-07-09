@@ -50,10 +50,17 @@ A small sample dataset is included so you can run the model immediately — see
 ```bash
 git clone https://github.com/Li-N-K/SSMModel.git
 cd SSMModel
+python3 -m venv .venv
+source .venv/bin/activate      # on Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
 Requires Python 3.8+, `numpy`, and `pandas`.
+
+> **Using Anaconda?** Install into a fresh virtual environment as shown above rather than
+> the `base` environment or an existing conda env. A `base` environment with a stale/broken
+> `pyarrow` install can make `import pandas` fail with a NumPy 1.x/2.x ABI error that has
+> nothing to do with this repo — a clean venv sidesteps it entirely.
 
 ---
 
