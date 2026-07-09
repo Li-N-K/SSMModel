@@ -80,16 +80,17 @@ def SSMM_leapfrog(precipitation, pot_evaporation, layer_thickness, soil_props, l
                         psi_next = psi
                         K_next = K_s * hps
                         dz = layer_thickness[layer]
+                        flux_bottom[i, layer] = (-((K + K_next) / 2) * ((psi + grav_z[layer]) - (psi_next + grav_z[layer + 1]))) / dz ** 2
                     elif lower_boundary == 'ground_water':
                         psi_next = -psi
                         K_next = K_s * hps
                         dz = layer_thickness[layer]
+                        flux_bottom[i, layer] = (-((K + K_next) / 2) * ((psi + grav_z[layer]) - (psi_next + grav_z[layer + 1]))) / dz ** 2
                     elif lower_boundary == 'no_flow':
-                        K_next = -K
+                        # Sealed bottom: no water crosses the lower boundary.
+                        flux_bottom[i, layer] = 0.0
                     else:
                         raise ValueError(f"Invalid lower_boundary: {lower_boundary}")
-
-                    flux_bottom[i, layer] = (-((K + K_next) / 2) * ((psi + grav_z[layer]) - (psi_next + grav_z[layer + 1]))) / dz ** 2
 
                 else:
                     psi_next = psi_s * (theta[i - 1, layer + 1] / theta_s) ** -b
