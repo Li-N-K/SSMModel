@@ -48,7 +48,7 @@ A small sample dataset is included so you can run the model immediately — see
 ## Installation
 
 ```bash
-git clone https://github.com/libertlee/SSMModel.git
+git clone https://github.com/Li-N-K/SSMModel.git
 cd SSMModel
 pip install -r requirements.txt
 ```
